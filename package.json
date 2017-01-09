@@ -1,0 +1,16 @@
+{
+  "name": "newblocks",
+  "version": "1.0.0",
+  "description": "upload/retrieve session files securely",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/tchar989/blocks"
+  },
+  "author": "Tim Chartier",
+  "license": "ISC"
+}
