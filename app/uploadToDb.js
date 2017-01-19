@@ -6,11 +6,11 @@
 
 module.exports = function(dbURL, scm, callback)
 {
-	console.log("uploading to DB...");
 	mongoose.Promise = global.Promise;
 	//check if mongoose already connected
 	if(mongoose.connection.readyState == 0)
 	{
+		console.log("Connected to database...");
 		mongoose.connect(dbURL);
 	}
 	scm = JSON.parse(scm);
@@ -25,30 +25,27 @@ module.exports = function(dbURL, scm, callback)
 	//attempt to find a database entry with the same id (prevent duplicates)
 	var query = Sessions.where({ id : scm.id });
 	console.log("Searching database...");
+	/*query.update({id: newSession.id},{$setOnInsert: newSession}, {upsert: true}, function(err, numAffected)
+	{
+		console.log("Successfully uploaded file with id: " + newSession.id + " to database.");
+	});*/
 	query.findOne(function(err, session)
 	{
 		if(err)
-		{
-			console.log("Error: Could not parse database.");
-			return callback(err);
-		}
+			return callback(new Error("Error: Could not parse database"));
 		else if(session)
-		{
-			//found another file in DB with same ID! No duplicates
-			console.log("File with id " + scm.id + " already in database.");
-		}
+			return callback(new Error("File with id " + scm.id + " already in database."));
+
 		else
 		{
 			newSession.save(function(err)
 			{
 				if(err)
-				{
-					console.log("Error: Could not save to database.");
-					return callback(err);
-				}
+					return callback(new Error("Error: Could not save to database."));
 				else
 				{
 					console.log("Succesfully uploaded " + scm.id + " to database.");
+					return callback(null);
 				}
 			});
 		}

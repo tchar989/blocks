@@ -5,22 +5,19 @@
 
 module.exports = function(path,callback)
 {
-	console.log("Parsing file...");
+	console.log("Parsing file... " + path);
 	//synchronously read file data: no point in asynch as file data is crucial to the rest of module
 	//catch error so entire server won't crash if this fails!
-	try 
-	{
+	if(!fs.existsSync(path))
+		return callback(new Error("File not found."));
+	else
 		var filedata = fs.readFileSync(path, {encoding: 'utf-8'});
-	} catch(err)
-	{
-		return callback(err);
-	}
 	//grab the metadata for the session and split using ';' as delimiter
 	var metadata = filedata.substring(0,filedata.indexOf('[')-1);
 	var filedata = filedata.substring(filedata.indexOf('['),filedata.length);
 	var pieces = metadata.split(';');
 	if(!(pieces[0]&&pieces[1]&&pieces[2]))
-		return callback(err);
+		return callback(new Error("File cannot be parsed - check the format"));
 	//create session object for later upload
 	var callbackobj = {
 		'id' : pieces[0],

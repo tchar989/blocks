@@ -1,3 +1,3 @@
 module.exports = {
-	'path' : '/Users/Tim/Desktop/newBlocks/tmp'
+	'path' : '/Users/Tim/Desktop/newBlocks/tmp/'
 }

@@ -9,26 +9,33 @@ var express = require('express');
     parseSess = require('./parseSession.js');
     tmpPath = require('../config/temp.js');
     uploadToDb = require('./uploadToDb.js');
+    removeFile = require('./removeFile.js')
 
 router.post('/upload', function(req,res)
 {
+	var worker = process.spawn
 	var form = formidable.IncomingForm({uploadDir : "tmp", encoding: 'utf-8'});
-	var filename = tmpPath.path + "/session.txt";
+	var filename = tmpPath.path + "session" + process.pid + ".txt";
 	form.on('fileBegin', function(name,file)
 	{
-		file.path = tmpPath.path + "/session.txt";
+		file.path = filename;
 	});
-
-	form.parse(req)
+	form.parse(req);
+	form.on('end', function()
 	{
 		var newSession;
+
 		parseSess(filename, function(err, sess)
 		{
 			if(err)
 			{
-				console.log("Error: Unable to parse file!");
-				res.send("Error: Unable to parse file!");
-				return;
+				console.log("Error: " + err.message);
+				fs.unlink(filename, function(err)
+				{
+					if(err)
+					console.log("Error: Could not unlink: " + filename);
+					res.redirect("/")
+				});
 			}
 			else
 			{
@@ -36,16 +43,23 @@ router.post('/upload', function(req,res)
 				uploadToDb(configDB.url, JSON.stringify(sess), function(err)
 				{
 					if(err)
-						//write html page for this...
-						res.write("Error uploading to database.");
+						console.log(err.message);
+					fs.unlink(filename, function(err)
+					{
+						if(err)
+							console.log("Error: Could not unlink: " + filename);
+						res.redirect("/")
+					});
 				});
 			}
 		});
-	}
+	});
+	console.log("hi");
 });
 router.get("/", function(req,res)
 {
 	res.render('index.html');
 });
+
 
 module.exports = router;
