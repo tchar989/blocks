@@ -7,9 +7,12 @@
 module.exports = function(dbURL, scm, callback)
 {
 	mongoose.Promise = global.Promise;
-	//check if mongoose already connected
-	var options = { server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } }, 
-                replset: { socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 } } };    
+
+
+	var options = { server: { socketOptions: { keepAlive: 600000, connectTimeoutMS: 60000 } }, 
+                replset: { socketOptions: { keepAlive: 600000, connectTimeoutMS : 60000 } } }; 
+
+    //check if mongoose already connected
 	if(mongoose.connection.readyState == 0)
 	{
 		console.log("Connected to database...");
@@ -24,7 +27,13 @@ module.exports = function(dbURL, scm, callback)
 		date : scm.date,
 		body : scm.body
 	});
-	//attempt to find a database entry with the same id (prevent duplicates)
+
+	/*
+	* our query, which finds all database entries with the same id as the one we're prepping for upload
+	* (no duplicates)
+	* Note: query.update automatically disallows duplicates, however it is much quicker to first see
+	* if the entry is a duplicate. Uploading to the database takes a significantly longer time.
+	*/
 	var query = Sessions.where({ id : scm.id });
 	console.log("Searching database...");
 	query.findOne(function(err, session)
