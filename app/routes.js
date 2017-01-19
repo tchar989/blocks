@@ -18,6 +18,8 @@ router.post('/upload', function(req,res)
 	var filename = tmpPath.path + "session" + process.pid + ".txt";
 	form.on('fileBegin', function(name,file)
 	{
+		console.log(file.path);
+		setTimeout(function(){},10000);
 		file.path = filename;
 	});
 	form.parse(req);
@@ -27,35 +29,26 @@ router.post('/upload', function(req,res)
 
 		parseSess(filename, function(err, sess)
 		{
-			if(err)
+			fs.unlink(filename, function(err)
 			{
+				if(err)
+					console.log("Error: Could not unlink file: " + filename);
+			});
+			if(err)
 				console.log("Error: " + err.message);
-				fs.unlink(filename, function(err)
-				{
-					if(err)
-					console.log("Error: Could not unlink: " + filename);
-					res.redirect("/")
-				});
-			}
 			else
 			{
-				//Spin up new process to concurrently handle database upload and respond with an error code
 				uploadToDb(configDB.url, JSON.stringify(sess), function(err)
 				{
 					if(err)
 						console.log(err.message);
-					fs.unlink(filename, function(err)
-					{
-						if(err)
-							console.log("Error: Could not unlink: " + filename);
-						res.redirect("/")
-					});
+					return;
 				});
 			}
 		});
 	});
-	console.log("hi");
 });
+
 router.get("/", function(req,res)
 {
 	res.render('index.html');
